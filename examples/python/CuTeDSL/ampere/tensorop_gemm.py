@@ -903,6 +903,9 @@ def run(
     print("Compiling kernel with cute.compile ...")
     compiled_gemm = cute.compile(tensor_op_gemm, mA, mB, mC)
 
+    import ipdb
+    ipdb.set_trace()
+
     print("Executing GEMM kernel...")
 
     if not skip_ref_check:
