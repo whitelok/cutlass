@@ -903,9 +903,6 @@ def run(
     print("Compiling kernel with cute.compile ...")
     compiled_gemm = cute.compile(tensor_op_gemm, mA, mB, mC)
 
-    import ipdb
-    ipdb.set_trace()
-
     print("Executing GEMM kernel...")
 
     if not skip_ref_check:
@@ -998,7 +995,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    run(
+    avg_time_us = run(
         args.a_major,
         args.b_major,
         args.c_major,
@@ -1012,4 +1009,7 @@ if __name__ == "__main__":
         args.skip_ref_check,
         args.use_cold_l2,
     )
+
+    print(f"avg_time_us: {avg_time_us}")
+
     print("PASS")

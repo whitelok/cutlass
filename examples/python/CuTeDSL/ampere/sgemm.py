@@ -852,7 +852,7 @@ if __name__ == "__main__":
 
     torch.manual_seed(1024)
 
-    run(
+    avg_time_us = run(
         args.mnk,
         args.a_major,
         args.b_major,
@@ -863,4 +863,7 @@ if __name__ == "__main__":
         args.skip_ref_check,
         args.use_cold_l2,
     )
+
+    print(f"avg_time_us: {avg_time_us}")
+
     print("PASS")
