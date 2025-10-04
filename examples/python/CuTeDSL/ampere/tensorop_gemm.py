@@ -901,9 +901,10 @@ def run(
     )
 
     print("Compiling kernel with cute.compile ...")
-    # import ipdb
+    import ipdb
     # ipdb.set_trace()
     compiled_gemm = cute.compile(tensor_op_gemm, mA, mB, mC)
+    ipdb.set_trace()
 
     print("Executing GEMM kernel...")
 
