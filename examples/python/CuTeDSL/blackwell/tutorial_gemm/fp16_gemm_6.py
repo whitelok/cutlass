@@ -508,14 +508,23 @@ def gemm(
                 # (MMA, MMA_M, MMA_N)
                 tCtAcc = tCtAcc_base[(None, None, None, acc_empty.index)]
 
+                tiled_mma.set(tcgen05.Field.ACCUMULATE, False)
                 for k_tile_idx in range(num_k_tiles):
                     # Wait for TMA copies to complete
                     handle = ab_consumer.wait_and_advance()
 
                     # Execute one K-block worth of MMA instructions
-                    tiled_mma.set(tcgen05.Field.ACCUMULATE, k_tile_idx != 0)
-                    tile_crd = (None, None, None, handle.index)
-                    cute.gemm(tiled_mma, tCtAcc, tCrA[tile_crd], tCrB[tile_crd], tCtAcc)
+                    num_k_blocks = cute.size(tCrA, mode=[2])
+                    for k_block_idx in cutlass.range_constexpr(num_k_blocks):
+                        k_block_coord = (None, None, k_block_idx, handle.index)
+                        cute.gemm(
+                            tiled_mma,
+                            tCtAcc,
+                            tCrA[k_block_coord],
+                            tCrB[k_block_coord],
+                            tCtAcc,
+                        )
+                        tiled_mma.set(tcgen05.Field.ACCUMULATE, True)
 
                     # Signal that the A/B buffers have been consumed and are ready for the next load
                     handle.release()
