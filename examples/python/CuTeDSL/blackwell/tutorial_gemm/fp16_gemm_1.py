@@ -294,9 +294,17 @@ def kernel(
             if is_leader_cta:
                 ab_full = ab_consumer.wait_and_advance()
                 # Execute one K-block worth of MMA instructions
-                tiled_mma.set(tcgen05.Field.ACCUMULATE, k_tile != 0)
-                tile_crd = (None, None, None, ab_full.index)
-                cute.gemm(tiled_mma, tCtAcc, tCrA[tile_crd], tCrB[tile_crd], tCtAcc)
+                num_k_blocks = cute.size(tCrA, mode=[2])
+                for k_block_idx in cutlass.range_constexpr(num_k_blocks):
+                    k_block_coord = (None, None, k_block_idx, ab_full.index)
+                    cute.gemm(
+                        tiled_mma,
+                        tCtAcc,
+                        tCrA[k_block_coord],
+                        tCrB[k_block_coord],
+                        tCtAcc,
+                    )
+                    tiled_mma.set(tcgen05.Field.ACCUMULATE, True)
                 ab_full.release()
 
         # Signal that the accumulator is fully computed

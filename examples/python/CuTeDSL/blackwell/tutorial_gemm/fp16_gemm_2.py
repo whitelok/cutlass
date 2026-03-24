@@ -49,7 +49,7 @@ To store the results from registers to global memory using TMA actually requires
 1). Write the tile from registers to shared memory
 2). Write the tile from shared memory to global memory
 Here we continue to use epiolgue subtiles, one reason is that it reduces the shared memory usage in the epilogue,
-and another reason is that it can hide the STS latency, that is the STS of the next subtile can be overlapped with the TMA store of the current subtile.
+and another reason is that it can hide the st.shared latency, that is the st.shared of the next subtile can be overlapped with the TMA store of the current subtile.
 
 For large mma tile size, the mainloop performance between Non-WS and WS version could be similar if there are enough ab_stages to hide the dram latency.
 The performance gain of WS version mainly comes from the prologue and epilogue in this case.
@@ -338,9 +338,17 @@ def kernel(
                 handle = ab_consumer.wait_and_advance()
 
                 # Execute one K-block worth of MMA instructions
-                tiled_mma.set(tcgen05.Field.ACCUMULATE, k_tile_idx != 0)
-                tile_crd = (None, None, None, handle.index)
-                cute.gemm(tiled_mma, tCtAcc, tCrA[tile_crd], tCrB[tile_crd], tCtAcc)
+                num_k_blocks = cute.size(tCrA, mode=[2])
+                for k_block_idx in cutlass.range_constexpr(num_k_blocks):
+                    k_block_coord = (None, None, k_block_idx, handle.index)
+                    cute.gemm(
+                        tiled_mma,
+                        tCtAcc,
+                        tCrA[k_block_coord],
+                        tCrB[k_block_coord],
+                        tCtAcc,
+                    )
+                    tiled_mma.set(tcgen05.Field.ACCUMULATE, True)
 
                 # Signal that the A/B buffers have been consumed and are ready for the next load
                 handle.release()
