@@ -541,7 +541,7 @@ class PersistentDenseGemmKernel:
             ab_empty_mbar_ptr: cute.struct.MemRange[cutlass.Int64, self.num_ab_stage]
             acc_full_mbar_ptr: cute.struct.MemRange[cutlass.Int64, self.num_acc_stage]
             acc_empty_mbar_ptr: cute.struct.MemRange[cutlass.Int64, self.num_acc_stage]
-            tmem_dealloc_mbar_ptr: cutlass.Int64
+            tmem_dealloc_mbar: cutlass.Int64
             tmem_holding_buf: cutlass.Int32
             # (EPI_TILE_M, EPI_TILE_N, STAGE)
             sC: cute.struct.Align[
@@ -660,8 +660,8 @@ class PersistentDenseGemmKernel:
         smem = utils.SmemAllocator()
         storage = smem.allocate(self.shared_storage)
 
-        tmem_dealloc_mbar_ptr = storage.tmem_dealloc_mbar_ptr
-        tmem_holding_buf = storage.tmem_holding_buf
+        tmem_dealloc_mbar_ptr = storage.tmem_dealloc_mbar.ptr
+        tmem_holding_buf = storage.tmem_holding_buf.ptr
 
         # Initialize mainloop ab_pipeline (barrier) and states
         ab_pipeline_producer_group = pipeline.CooperativeGroup(pipeline.Agent.Thread)

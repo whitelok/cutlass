@@ -159,11 +159,11 @@ def kernel(
         * len((mma_warp_id, *epilogue_warp_ids)),  # 5 warps = 160 threads
     )
     tmem = utils.TmemAllocator(
-        storage.tmem_holding_buffer,
+        storage.tmem_holding_buffer.ptr,
         barrier_for_retrieve=tmem_alloc_barrier,
         allocator_warp_id=epilogue_warp_ids[0],
         is_two_cta=True,
-        two_cta_tmem_dealloc_mbar_ptr=storage.tmem_dealloc_mbar,
+        two_cta_tmem_dealloc_mbar_ptr=storage.tmem_dealloc_mbar.ptr,
     )
 
     num_tma_copy_bytes = (
