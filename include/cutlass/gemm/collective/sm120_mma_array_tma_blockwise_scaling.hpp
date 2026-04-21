@@ -614,8 +614,6 @@ struct CollectiveMma<
     }
   }
 
-  /// Perform a collective-scoped matrix multiply-accumulate
-  /// Consumer Perspective
   template <
     class FrgTensorC
   >
@@ -627,6 +625,27 @@ struct CollectiveMma<
       int thread_idx,
       TensorStorage& shared_tensors,
       Params const& mainloop_params) {
+
+      auto empty_tuple = make_tuple(_0{}, _0{}, _0{}, _0{});
+      mma(pipeline, smem_pipe_read, accum, k_tile_count,
+          thread_idx, shared_tensors, mainloop_params, empty_tuple);
+    }
+
+  /// Perform a collective-scoped matrix multiply-accumulate
+  /// Consumer Perspective
+  template <
+    class FrgTensorC,
+    class BlockCoord
+  >
+  CUTLASS_DEVICE void
+  mma(MainloopPipeline pipeline,
+      PipelineState smem_pipe_read,
+      FrgTensorC& accum,
+      int k_tile_count,
+      int thread_idx,
+      TensorStorage& shared_tensors,
+      Params const& mainloop_params,
+      [[maybe_unused]] BlockCoord& blk_crd) {
     using namespace cute;
 
     static_assert(is_rmem<FrgTensorC>::value, "C tensor must be rmem resident.");

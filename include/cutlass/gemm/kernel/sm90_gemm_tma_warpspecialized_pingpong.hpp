@@ -849,15 +849,29 @@ public:
         // Order two Math WG's MMA one after the other, helps hide Epilogue
         math_wg_order_barrier.wait();
 
-        collective_mainloop.mma(
-          mainloop_pipeline,
-          mainloop_pipe_consumer_state,
-          accumulators,
-          k_tile_count,
-          warp_group_thread_idx,
-          shared_storage.tensors.mainloop,
-          params.mainloop
-        );
+        if constexpr (IsSm120Family) {
+          collective_mainloop.mma(
+            mainloop_pipeline,
+            mainloop_pipe_consumer_state,
+            accumulators,
+            k_tile_count,
+            warp_group_thread_idx,
+            shared_storage.tensors.mainloop,
+            params.mainloop,
+            blk_coord
+          );
+        }
+        else {
+          collective_mainloop.mma(
+            mainloop_pipeline,
+            mainloop_pipe_consumer_state,
+            accumulators,
+            k_tile_count,
+            warp_group_thread_idx,
+            shared_storage.tensors.mainloop,
+            params.mainloop
+          );
+        }
 
         // Cue for next Math WG's MMA to start
         math_wg_order_barrier.arrive();
